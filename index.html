@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LSU DH Food Ordering System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Login/Signup Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="auth-tabs">
+                <button class="tab-btn active" onclick="openTab('login')">Login</button>
+                <button class="tab-btn" onclick="openTab('signup')">Sign Up</button>
+            </div>
+            
+            <div id="login" class="tab-content active">
+                <h2>Login to Your Account</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmail">Email/Student ID</label>
+                        <input type="text" id="loginEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="userType">Login As:</label>
+                        <select id="userType" required>
+                            <option value="student">Student</option>
+                            <option value="dh_staff">DH Staff</option>
+                            <option value="accounts">Accounts</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn">Login</button>
+                </form>
+            </div>
+            
+            <div id="signup" class="tab-content">
+                <h2>Create New Account</h2>
+                <form id="signupForm">
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="studentId">Student ID</label>
+                        <input type="text" id="studentId" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input type="password" id="confirmPassword" required>
+                    </div>
+                    <button type="submit" class="btn">Register</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation -->
+    <header>
+        <nav>
+            <div class="logo">
+                <img src="images/logo.png" alt="LSU Logo">
+                <h1>LSU DH Food Ordering</h1>
+            </div>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#" id="homeLink">Home</a></li>
+                <li><a href="#" id="menuLink">Menu</a></li>
+                <li><a href="#" id="ordersLink">My Orders</a></li>
+                <li><a href="#" id="walletLink">Wallet</a></li>
+                <li><a href="#" id="complaintsLink">Complaints</a></li>
+                <li><a href="#" id="logoutLink">Logout</a></li>
+            </ul>
+            <div class="burger" id="burger">
+                <div class="line1"></div>
+                <div class="line2"></div>
+                <div class="line3"></div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content Area -->
+    <main>
+        <!-- Student Dashboard -->
+        <section id="studentDashboard" class="dashboard">
+            <div class="dashboard-header">
+                <h2>Welcome, <span id="studentName"></span></h2>
+                <div class="wallet-balance">
+                    <span>Wallet Balance: </span>
+                    <span id="walletBalance">$0.00</span>
+                    <button class="btn-sm" id="topUpBtn">Top Up</button>
+                </div>
+            </div>
+            
+            <div class="menu-container">
+                <h3>Today's Menu</h3>
+                <div class="menu-categories">
+                    <button class="category-btn active" data-category="all">All</button>
+                    <button class="category-btn" data-category="breakfast">Breakfast</button>
+                    <button class="category-btn" data-category="lunch">Lunch</button>
+                    <button class="category-btn" data-category="super">Super</button>
+                    <button class="category-btn" data-category="beverages">Beverages</button> 
+                </div>
+                
+                <div class="menu-items" id="menuItems">
+                    <!-- Menu items will be loaded here -->
+                </div>
+            </div>
+            
+            <div class="order-summary" id="orderSummary">
+                <h3>Order Summary</h3>
+                <div class="order-items" id="orderItems">
+                    <!-- Ordered items will appear here -->
+                    <p class="empty-message">No items selected</p>
+                </div>
+                <div class="order-total">
+                    <p>Total: <span id="orderTotal">$0.00</span></p>
+                    <button class="btn" id="placeOrderBtn" disabled>Place Order</button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- DH Staff Dashboard -->
+        <section id="dhStaffDashboard" class="dashboard hidden">
+            <h2>DH Staff Dashboard</h2>
+            <div class="staff-tabs">
+                <button class="tab-btn active" onclick="openStaffTab('manageOrders')">Manage Orders</button>
+                <button class="tab-btn" onclick="openStaffTab('manageMenu')">Manage Menu</button>
+                <button class="tab-btn" onclick="openStaffTab('manageComplaints')">Manage Complaints</button>
+            </div>
+            
+            <div id="manageOrders" class="staff-tab-content active">
+                <h3>Current Orders</h3>
+                <div class="search-filter">
+                    <input type="text" id="orderSearch" placeholder="Search orders...">
+                    <select id="orderFilter">
+                        <option value="all">All Orders</option>
+                        <option value="pending">Pending</option>
+                        <option value="preparing">Preparing</option>
+                        <option value="ready">Ready</option>
+                        <option value="collected">Collected</option>
+                    </select>
+                </div>
+                <div class="orders-list" id="dhOrdersList">
+                    <!-- Orders will be loaded here -->
+                </div>
+            </div>
+            
+            <div id="manageMenu" class="staff-tab-content">
+                <h3>Manage Menu Items</h3>
+                <button class="btn" id="addMenuItemBtn">Add New Item</button>
+                <div class="menu-items-list" id="dhMenuItemsList">
+                    <!-- Menu items for management will be loaded here -->
+                </div>
+            </div>
+            
+            <div id="manageComplaints" class="staff-tab-content">
+                <h3>Student Complaints</h3>
+                <div class="complaints-list" id="dhComplaintsList">
+                    <!-- Complaints will be loaded here -->
+                </div>
+            </div>
+        </section>
+        
+        <!-- Accounts Dashboard -->
+        <section id="accountsDashboard" class="dashboard hidden">
+            <h2>Accounts Dashboard</h2>
+            <div class="accounts-tabs">
+                <button class="tab-btn active" onclick="openAccountsTab('dailySales')">Daily Sales</button>
+                <button class="tab-btn" onclick="openAccountsTab('transactions')">Transactions</button>
+                <button class="tab-btn" onclick="openAccountsTab('reports')">Reports</button>
+            </div>
+            
+            <div id="dailySales" class="accounts-tab-content active">
+                <h3>Today's Sales Summary</h3>
+                <div class="sales-summary">
+                    <div class="summary-card">
+                        <h4>Total Orders</h4>
+                        <p id="totalOrders">0</p>
+                    </div>
+                    <div class="summary-card">
+                        <h4>Total Revenue</h4>
+                        <p id="totalRevenue">$0.00</p>
+                    </div>
+                    <div class="summary-card">
+                        <h4>Average Order Value</h4>
+                        <p id="avgOrderValue">$0.00</p>
+                    </div>
+                </div>
+                
+                <div class="sales-details">
+                    <h4>Order Details</h4>
+                    <div class="orders-list" id="accountsOrdersList">
+                        <!-- Orders will be loaded here -->
+                    </div>
+                </div>
+                
+                <button class="btn" id="exportSalesBtn">Export Today's Sales</button>
+            </div>
+            
+            <div id="transactions" class="accounts-tab-content">
+                <h3>All Transactions</h3>
+                <div class="transactions-list" id="transactionsList">
+                    <!-- Transactions will be loaded here -->
+                </div>
+            </div>
+            
+            <div id="reports" class="accounts-tab-content">
+                <h3>Generate Reports</h3>
+                <div class="report-options">
+                    <div class="form-group">
+                        <label for="reportType">Report Type</label>
+                        <select id="reportType">
+                            <option value="daily">Daily Sales</option>
+                            <option value="weekly">Weekly Sales</option>
+                            <option value="monthly">Monthly Sales</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="customDateRange">
+                        <label for="startDate">Start Date</label>
+                        <input type="date" id="startDate">
+                        <label for="endDate">End Date</label>
+                        <input type="date" id="endDate">
+                    </div>
+                    <button class="btn" id="generateReportBtn">Generate Report</button>
+                </div>
+                <div class="report-results" id="reportResults">
+                    <!-- Report results will appear here -->
+                </div>
+            </div>
+        </section>
+        
+        <!-- Admin Dashboard -->
+        <section id="adminDashboard" class="dashboard hidden">
+            <h2>Admin Dashboard</h2>
+            <div class="admin-tabs">
+                <button class="tab-btn active" onclick="openAdminTab('manageUsers')">Manage Users</button>
+                <button class="tab-btn" onclick="openAdminTab('systemSettings')">System Settings</button>
+                <button class="tab-btn" onclick="openAdminTab('adminReports')">Reports</button>
+            </div>
+            
+            <div id="manageUsers" class="admin-tab-content active">
+                <h3>User Management</h3>
+                <div class="search-filter">
+                    <input type="text" id="userSearch" placeholder="Search users...">
+                    <select id="userFilter">
+                        <option value="all">All Users</option>
+                        <option value="students">Students</option>
+                        <option value="dh_staff">DH Staff</option>
+                        <option value="accounts">Accounts</option>
+                        <option value="admin">Admins</option>
+                    </select>
+                </div>
+                <div class="users-list" id="usersList">
+                    <!-- Users will be loaded here -->
+                </div>
+            </div>
+            
+            <div id="systemSettings" class="admin-tab-content">
+                <h3>System Settings</h3>
+                <div class="settings-form">
+                    <div class="form-group">
+                        <label for="systemName">System Name</label>
+                        <input type="text" id="systemName" value="LSU DH Food Ordering">
+                    </div>
+                    <div class="form-group">
+                        <label for="dhOpeningHours">DH Opening Hours</label>
+                        <input type="text" id="dhOpeningHours" value="07:00 - 21:00">
+                    </div>
+                    <div class="form-group">
+                        <label for="orderCutoffTime">Order Cut-off Time (before meal)</label>
+                        <input type="number" id="orderCutoffTime" value="2"> hours
+                    </div>
+                    <div class="form-group">
+                        <label for="maxOrderAmount">Max Order Amount ($)</label>
+                        <input type="number" id="maxOrderAmount" value="50">
+                    </div>
+                    <button class="btn" id="saveSettingsBtn">Save Settings</button>
+                </div>
+            </div>
+            
+            <div id="adminReports" class="admin-tab-content">
+                <h3>System Reports</h3>
+                <div class="report-options">
+                    <div class="form-group">
+                        <label for="adminReportType">Report Type</label>
+                        <select id="adminReportType">
+                            <option value="user_activity">User Activity</option>
+                            <option value="system_usage">System Usage</option>
+                            <option value="popular_items">Popular Items</option>
+                            <option value="revenue_trends">Revenue Trends</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminDateRange">Date Range</label>
+                        <select id="adminDateRange">
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="quarter">This Quarter</option>
+                            <option value="year">This Year</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                    </div>
+                    <button class="btn" id="generateAdminReportBtn">Generate Report</button>
+                </div>
+                <div class="report-results" id="adminReportResults">
+                    <!-- Admin report results will appear here -->
+                </div>
+            </div>
+        </section>
+        
+        <!-- Order History -->
+        <section id="orderHistory" class="dashboard hidden">
+            <h2>My Order History</h2>
+            <div class="search-filter">
+                <input type="text" id="historySearch" placeholder="Search orders...">
+                <select id="historyFilter">
+                    <option value="all">All Orders</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                </select>
+            </div>
+            <div class="orders-list" id="historyOrdersList">
+                <!-- Order history will be loaded here -->
+            </div>
+        </section>
+        
+        <!-- Wallet Management -->
+        <section id="walletManagement" class="dashboard hidden">
+            <h2>My Wallet</h2>
+            <div class="wallet-summary">
+                <div class="wallet-balance-card">
+                    <h3>Current Balance</h3>
+                    <p id="walletCurrentBalance">$0.00</p>
+                </div>
+                <div class="wallet-actions">
+                    <button class="btn" id="depositBtn">Deposit Funds</button>
+                    <button class="btn" id="transactionHistoryBtn">View Transaction History</button>
+                </div>
+            </div>
+            
+            <div class="deposit-options hidden" id="depositOptions">
+                <h3>Deposit Funds</h3>
+                <div class="form-group">
+                    <label for="depositAmount">Amount ($)</label>
+                    <input type="number" id="depositAmount" min="1" step="0.01">
+                </div>
+                <div class="payment-methods">
+                    <div class="payment-method">
+                        <input type="radio" id="ecocash" name="paymentMethod" value="ecocash" checked>
+                        <label for="ecocash">EcoCash</label>
+                    </div>
+                    <div class="payment-method">
+                        <input type="radio" id="bankTransfer" name="paymentMethod" value="bank_transfer">
+                        <label for="bankTransfer">Bank Transfer</label>
+                    </div>
+                    <div class="payment-method">
+                        <input type="radio" id="card" name="paymentMethod" value="card">
+                        <label for="card">Credit/Debit Card</label>
+                    </div>
+                </div>
+                <button class="btn" id="proceedPaymentBtn">Proceed to Payment</button>
+            </div>
+            
+            <div class="transaction-history hidden" id="transactionHistory">
+                <h3>Transaction History</h3>
+                <div class="transactions-list" id="walletTransactionsList">
+                    <!-- Transactions will be loaded here -->
+                </div>
+            </div>
+        </section>
+        
+        <!-- Complaints Section -->
+        <section id="complaintsSection" class="dashboard hidden">
+            <h2>Complaints & Feedback</h2>
+            <div class="complaints-tabs">
+                <button class="tab-btn active" onclick="openComplaintsTab('newComplaint')">New Complaint</button>
+                <button class="tab-btn" onclick="openComplaintsTab('myComplaints')">My Complaints</button>
+            </div>
+            
+            <div id="newComplaint" class="complaints-tab-content active">
+                <form id="complaintForm">
+                    <div class="form-group">
+                        <label for="complaintType">Complaint Type</label>
+                        <select id="complaintType" required>
+                            <option value="food_quality">Food Quality</option>
+                            <option value="service">Service</option>
+                            <option value="order_issues">Order Issues</option>
+                            <option value="payment">Payment</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="complaintOrder">Related Order (if any)</label>
+                        <select id="complaintOrder">
+                            <option value="">Select an order</option>
+                            <!-- Orders will be populated here -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="complaintDetails">Details</label>
+                        <textarea id="complaintDetails" rows="5" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="complaintAttachment">Attachment (optional)</label>
+                        <input type="file" id="complaintAttachment">
+                    </div>
+                    <button type="submit" class="btn">Submit Complaint</button>
+                </form>
+            </div>
+            
+            <div id="myComplaints" class="complaints-tab-content">
+                <div class="complaints-list" id="userComplaintsList">
+                    <!-- User complaints will be loaded here -->
+                </div>
+            </div>
+        </section>
+        
+        <!-- Order Confirmation Modal -->
+        <div id="orderModal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Order Confirmation</h2>
+                <div class="order-details" id="modalOrderDetails">
+                    <!-- Order details will be shown here -->
+                </div>
+                <div class="order-actions">
+                    <button class="btn" id="confirmOrderBtn">Confirm Order</button>
+                    <button class="btn btn-cancel" id="cancelOrderBtn">Cancel</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payment Modal -->
+        <div id="paymentModal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Payment Processing</h2>
+                <div class="payment-details" id="paymentDetails">
+                    <!-- Payment details will be shown here -->
+                </div>
+                <div class="payment-actions">
+                    <button class="btn" id="completePaymentBtn">Complete Payment</button>
+                    <button class="btn btn-cancel" id="cancelPaymentBtn">Cancel</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Receipt Modal -->
+        <div id="receiptModal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Order Receipt</h2>
+                <div class="receipt-details" id="receiptDetails">
+                    <!-- Receipt details will be shown here -->
+                </div>
+                <div class="receipt-actions">
+                    <button class="btn" id="printReceiptBtn">Print Receipt</button>
+                    <button class="btn" id="downloadReceiptBtn">Download PDF</button>
+                    <button class="btn btn-cancel" id="closeReceiptBtn">Close</button>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <p>Email: <a href="#">tadiwanashe1207@gmail.com</a></p>
+                <p>Phone: +263 781 869 005</p>
+            </div>
+            <div class="footer-section">
+                <h3>Opening Hours</h3>
+                <p>Monday - Friday: 8:00 AM - 7:30 PM</p>
+                <p>Weekends: 8:00 AM - 7:30 PM</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="#">About</a></li>
+                    <li><a href="#">FAQs</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Lupane State University. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
