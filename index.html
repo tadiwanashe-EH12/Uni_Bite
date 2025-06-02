@@ -16,7 +16,7 @@
                 <button class="tab-btn active" onclick="openTab('login')">Login</button>
                 <button class="tab-btn" onclick="openTab('signup')">Sign Up</button>
             </div>
-            
+                            
             <div id="login" class="tab-content active">
                 <h2>Login to Your Account</h2>
                 <form id="loginForm">
@@ -28,7 +28,7 @@
                         <label for="loginPassword">Password</label>
                         <input type="password" id="loginPassword" required>
                     </div>
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <label for="userType">Login As:</label>
                         <select id="userType" required>
                             <option value="student">Student</option>
@@ -36,7 +36,7 @@
                             <option value="accounts">Accounts</option>
                             <option value="admin">Admin</option>
                         </select>
-                    </div>
+                    </div> -->
                     <button type="submit" class="btn">Login</button>
                 </form>
             </div>
@@ -258,22 +258,53 @@
                 <button class="tab-btn" onclick="openAdminTab('adminReports')">Reports</button>
             </div>
             
-            <div id="manageUsers" class="admin-tab-content active">
-                <h3>User Management</h3>
-                <div class="search-filter">
-                    <input type="text" id="userSearch" placeholder="Search users...">
-                    <select id="userFilter">
-                        <option value="all">All Users</option>
-                        <option value="students">Students</option>
-                        <option value="dh_staff">DH Staff</option>
-                        <option value="accounts">Accounts</option>
-                        <option value="admin">Admins</option>
-                    </select>
-                </div>
-                <div class="users-list" id="usersList">
-                    <!-- Users will be loaded here -->
-                </div>
+<div class="admin-tab-content" id="manageUsers">
+    <div class="card">
+        <div class="card-header">
+            <h3>User Management</h3>
+            <button id="addUserBtn" class="btn btn-primary">Add New User</button>
+        </div>
+        <div class="card-body">
+            <div id="usersList" class="users-list"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div id="addUserModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>Add New User</h3>
+        <form id="addUserForm">
+            <div class="form-group">
+                <label for="newUserName">Full Name</label>
+                <input type="text" id="newUserName" required>
             </div>
+            <div class="form-group">
+                <label for="newUserEmail">Email</label>
+                <input type="email" id="newUserEmail" required>
+            </div>
+            <div class="form-group">
+                <label for="newUserPhone">Phone</label>
+                <input type="tel" id="newUserPhone">
+            </div>
+            <div class="form-group">
+                <label for="newUserRole">Role</label>
+                <select id="newUserRole" required>
+                    <option value="student">Student</option>
+                    <option value="dh_staff">DH Staff</option>
+                    <option value="accounts">Accounts Staff</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="newUserPassword">Password</label>
+                <input type="password" id="newUserPassword" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Create User</button>
+        </form>
+    </div>
+</div>
             
             <div id="systemSettings" class="admin-tab-content">
                 <h3>System Settings</h3>

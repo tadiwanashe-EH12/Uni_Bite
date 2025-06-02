@@ -48,12 +48,15 @@ const walletBalance = document.getElementById('walletBalance');
 const walletCurrentBalance = document.getElementById('walletCurrentBalance');
 
 // API Configuration
-const API_BASE_URL = 'http://localhost/lsu_dh/api'; // Replace with your actual API base URL
+const API_BASE_URL = 'http://localhost/unibiteweb/api'; // Replace with your actual API base URL
 
+
+// Update your makeRequest function to handle CORS properly
 async function makeRequest(endpoint, method = 'GET', data = null, requiresAuth = true) {
     const url = `${API_BASE_URL}/${endpoint}`;
     const headers = {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
     };
 
     if (requiresAuth) {
@@ -66,8 +69,8 @@ async function makeRequest(endpoint, method = 'GET', data = null, requiresAuth =
     const config = {
         method,
         headers,
-        mode: 'cors', // Explicitly enable CORS
-        credentials: 'include' // Include credentials if needed
+        credentials: 'include', // For cookies if needed
+        mode: 'cors' // Explicitly enable CORS
     };
 
     if (data) {
@@ -78,7 +81,7 @@ async function makeRequest(endpoint, method = 'GET', data = null, requiresAuth =
         const response = await fetch(url, config);
         
         if (!response.ok) {
-            const errorData = await response.json();
+            const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.message || 'Request failed');
         }
         
@@ -90,7 +93,7 @@ async function makeRequest(endpoint, method = 'GET', data = null, requiresAuth =
 }
 // API Endpoints
 const api = {
-    auth: {
+     auth: {
         login: (email, password) => makeRequest('auth/login', 'POST', { email, password }, false),
         register: (userData) => makeRequest('auth/register', 'POST', userData, false)
     },
@@ -111,16 +114,19 @@ const api = {
     users: {
         getAll: () => makeRequest('users/get_users'),
         update: (userId, userData) => makeRequest(`users/update_user/${userId}`, 'PUT', userData),
-        delete: (userId) => makeRequest(`users/delete_user/${userId}`, 'DELETE')
+        delete: (userId) => makeRequest(`users/delete_user/${userId}`, 'DELETE'),
+        add: (userData) => makeRequest('users/add_user', 'POST', userData)
     },
     complaints: {
         create: (complaintData) => makeRequest('complaints/create_complaint', 'POST', complaintData),
         getAll: () => makeRequest('complaints/get_complaints'),
         resolve: (complaintId) => makeRequest(`complaints/resolve_complaint/${complaintId}`, 'PUT')
     }
+    
 };
 
 // Event Listeners
+
 document.addEventListener('DOMContentLoaded', () => {
     // Check if user is already logged in
     const token = localStorage.getItem('authToken');
@@ -144,6 +150,67 @@ document.addEventListener('DOMContentLoaded', () => {
     // Setup event listeners
     setupEventListeners();
 });
+document.addEventListener('DOMContentLoaded', function() {
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user'));
+    
+    // Check authentication status
+    if (!token || !user) {
+        // Force show auth modal and hide all content
+        document.getElementById('authModal').classList.remove('hidden');
+        document.getElementById('studentDashboard').classList.add('hidden');
+        
+        // Disable all navigation except logout (which will redirect to login)
+        document.querySelectorAll('#navLinks a').forEach(link => {
+            if (link.id !== 'logoutLink') {
+                link.style.pointerEvents = 'none';
+                link.style.opacity = '0.5';
+            }
+        });
+        
+        // Hide the main content area
+        document.querySelector('main').style.display = 'none';
+    } else {
+        // User is authenticated - hide auth modal
+        document.getElementById('authModal').classList.add('hidden');
+        document.querySelector('main').style.display = 'block';
+        
+        // Show the appropriate dashboard based on user role
+        showDashboardBasedOnRole(user.role);
+    }
+});
+
+function showDashboardBasedOnRole(role) {
+    // Hide all dashboards first
+    document.querySelectorAll('.dashboard').forEach(dash => {
+        dash.classList.add('hidden');
+    });
+    
+    // Show the appropriate dashboard
+    switch(role) {
+        case 'student':
+            document.getElementById('studentDashboard').classList.remove('hidden');
+            loadMenuItems();
+            updateCartUI();
+            break;
+        case 'dh_staff':
+            document.getElementById('dhStaffDashboard').classList.remove('hidden');
+            loadDHOrders();
+            break;
+        case 'accounts':
+            document.getElementById('accountsDashboard').classList.remove('hidden');
+            loadDailySales();
+            break;
+        case 'admin':
+            document.getElementById('adminDashboard').classList.remove('hidden');
+            loadAllUsers();
+            break;
+        default:
+            // Handle unexpected roles or show error
+            console.error('Unknown user role:', role);
+            authModal.style.display = 'flex';
+    }
+}
 
 function setupEventListeners() {
     // Navigation burger menu
@@ -192,6 +259,7 @@ function setupEventListeners() {
         e.preventDefault();
         logout();
     });
+}
     
     // Menu category buttons
     document.querySelectorAll('.category-btn').forEach(btn => {
@@ -212,6 +280,7 @@ function setupEventListeners() {
         depositOptions.classList.add('hidden');
         loadWalletTransactions();
     });
+
     
     // Proceed to payment button
     proceedPaymentBtn.addEventListener('click', showPaymentModal);
@@ -229,6 +298,16 @@ function setupEventListeners() {
         if (e.target === paymentModal) paymentModal.style.display = 'none';
         if (e.target === receiptModal) receiptModal.style.display = 'none';
     });
+    if (document.getElementById('addUserBtn')) {
+        setupAdminEventListeners();
+
+        function setupAdminEventListeners() {
+    document.getElementById('addUserBtn').addEventListener('click', () => {
+        document.getElementById('addUserModal').style.display = 'flex';
+    });
+
+    document.getElementById('addUserForm').addEventListener('submit', handleAddUser);
+}
 }
 
 // Utility Functions
@@ -275,9 +354,7 @@ function openAdminTab(tabName) {
 }
 
 function openComplaintsTab(tabName) {
-    document.querySelectorAll('.complaints-tab-content').forEach(tab => tab.classList.remove('active'));
-    document.querySelectorAll('.complaints-tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(tabName).classList.add('active');
+   (Name).classList.add('active');
     event.currentTarget.classList.add('active');
     
     if (tabName === 'myComplaints') loadUserComplaints();
@@ -289,14 +366,12 @@ async function handleLogin(e) {
     
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
-    const userType = document.getElementById('userType').value;
     
     try {
         const response = await api.auth.login(email, password);
         
-        // Verify user role matches selected role
-        if (response.user.role !== userType) {
-            throw new Error('You do not have permission to access this role');
+        if (!response.token || !response.user) {
+            throw new Error('Invalid response from server');
         }
         
         // Store token and user data
@@ -305,10 +380,15 @@ async function handleLogin(e) {
         
         currentUser = response.user;
         authModal.style.display = 'none';
-        showDashboard(userType);
+        
+        showDashboard(currentUser.role);
         updateUIForUser();
+        
+        // Update welcome message
+        alert(`Welcome back, ${currentUser.name}!`);
     } catch (error) {
-        alert(error.message || 'Login failed. Please try again.');
+        console.error('Login error:', error);
+        alert(error.message || 'Login failed. Please check your credentials and try again.');
     }
 }
 
@@ -322,22 +402,32 @@ async function handleSignup(e) {
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
     
+    // Validation
     if (password !== confirmPassword) {
         alert('Passwords do not match!');
         return;
     }
     
+    if (!email || !password || !fullName || !studentId) {
+        alert('Please fill in all required fields');
+        return;
+    }
+
     const userData = {
         name: fullName,
         studentId,
         email,
         phone,
         password,
-        role: 'student'
+        role: 'student' // Default role for signups
     };
     
     try {
         const response = await api.auth.register(userData);
+        
+        if (!response.token || !response.user) {
+            throw new Error('Registration failed - invalid server response');
+        }
         
         // Store token and user data
         localStorage.setItem('authToken', response.token);
@@ -348,12 +438,12 @@ async function handleSignup(e) {
         showDashboard('student');
         updateUIForUser();
         
-        alert('Registration successful! Welcome to LSU DH Food Ordering System.');
+        alert(`Registration successful! Welcome ${currentUser.name}`);
     } catch (error) {
+        console.error('Registration error:', error);
         alert(error.message || 'Registration failed. Please try again.');
     }
 }
-
 function logout() {
     localStorage.removeItem('authToken');
     localStorage.removeItem('userData');
@@ -430,6 +520,28 @@ function showComplaints() {
     complaintsSection.classList.remove('hidden');
     openComplaintsTab('newComplaint');
 }
+async function handleAddUser(e) {
+    e.preventDefault();
+    
+    const userData = {
+        name: document.getElementById('newUserName').value,
+        email: document.getElementById('newUserEmail').value,
+        phone: document.getElementById('newUserPhone').value,
+        role: document.getElementById('newUserRole').value,
+        password: document.getElementById('newUserPassword').value
+    };
+    
+    try {
+        const response = await api.users.add(userData);
+        alert(`User ${response.user.name} created successfully with role ${response.user.role}`);
+        document.getElementById('addUserModal').style.display = 'none';
+        document.getElementById('addUserForm').reset();
+        loadAllUsers();
+    } catch (error) {
+        alert(error.message || 'Failed to create user');
+    }
+}
+
 
 function updateUIForUser() {
     if (currentUser) {
