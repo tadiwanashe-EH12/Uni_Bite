@@ -1,7 +1,7 @@
-The University Dining Hall Digital Food Ordering System is a web-based platform designed to streamline food ordering, payment processing, and order tracking at university dining halls (DH). The system allows students to order meals digitally, receive receipts with unique reference numbers, and manage their accounts. DH staff can track orders, update menu availability, and mark orders as collected. The accounts department can monitor sales, while administrators have full control over the system.
+The University Dining Hall Digital Food Ordering System is a web-based platform designed to streamline food ordering, payment processing, and order tracking at university dining halls. The system allows students to order meals digitally, receive receipts with unique reference numbers, and manage their accounts. DH staff can track orders, update menu availability, and mark orders as collected. The accounts department can monitor sales, while administrators have full control over the system.
 
 
-Key features include:
+Key features:
 
 ✔ Student Orders – Browse menu, order meals, get digital receipts
 
@@ -72,6 +72,6 @@ Contact:
 ________________________________________
 
 
- Let’s modernize campus dining! 
+ Let’s modernize the campus dining experience !! 
 
 
