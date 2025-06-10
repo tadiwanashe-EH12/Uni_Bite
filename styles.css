@@ -192,17 +192,19 @@ header {
     background-color: var(--primary-color);
     color: white;
     padding: 1rem 0;
+    height: 20px;
     box-shadow: var(--box-shadow);
     position: sticky;
     top: 0;
     z-index: 100;
 }
 
+
 nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: 1200px;
+    max-width: 120px;
     margin: 0 auto;
     padding: 0 20px;
 }

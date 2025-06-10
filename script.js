@@ -48,7 +48,8 @@ const walletBalance = document.getElementById('walletBalance');
 const walletCurrentBalance = document.getElementById('walletCurrentBalance');
 
 // API Configuration
-const API_BASE_URL = 'http://localhost/unibiteweb/api'; // Replace with your actual API base URL
+//const API_BASE_URL = 'http://localhost/unibiteweb/api'; // Replace with your actual API base URL
+const API_BASE_URL = 'http://localhost/Uni_Bite/backend/api'; // Replace with your actual API base URL
 
 
 // Update your makeRequest function to handle CORS properly
@@ -74,12 +75,13 @@ async function makeRequest(endpoint, method = 'GET', data = null, requiresAuth =
     };
 
     if (data) {
+
         config.body = JSON.stringify(data);
     }
 
     try {
         const response = await fetch(url, config);
-        
+        //console.log(response.json())
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.message || 'Request failed');
@@ -94,12 +96,12 @@ async function makeRequest(endpoint, method = 'GET', data = null, requiresAuth =
 // API Endpoints
 const api = {
      auth: {
-        login: (email, password) => makeRequest('auth/login', 'POST', { email, password }, false),
-        register: (userData) => makeRequest('auth/register', 'POST', userData, false)
+        login: (email, password) => makeRequest('auth.php?action=login', 'POST', { email, password }, false),
+        register: (userData) => makeRequest('/auth.php?action=register', 'POST', userData, false)
     },
     menu: {
-        getMenu: () => makeRequest('menu/get_menu'),
-        addItem: (itemData) => makeRequest('menu/add_item', 'POST', itemData),
+        getMenu: () => makeRequest('menu.php?action=list'),
+        addItem: (itemData) => makeRequest('menu.php?action=add', 'POST', itemData),
         toggleAvailability: (itemId) => makeRequest(`menu/toggle_availability/${itemId}`, 'PUT')
     },
     orders: {
@@ -127,18 +129,19 @@ const api = {
 
 // Event Listeners
 
+// Replace the duplicate DOMContentLoaded listeners with this single version
 document.addEventListener('DOMContentLoaded', () => {
-    // Check if user is already logged in
     const token = localStorage.getItem('authToken');
     const userData = localStorage.getItem('userData');
-    
+
     if (token && userData) {
         try {
             currentUser = JSON.parse(userData);
-            showDashboard(currentUser.role);
+            showDashboardBasedOnRole(currentUser.role);
             updateUIForUser();
             authModal.style.display = 'none';
         } catch (e) {
+            // Clear invalid data
             localStorage.removeItem('authToken');
             localStorage.removeItem('userData');
             authModal.style.display = 'flex';
@@ -146,8 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         authModal.style.display = 'flex';
     }
-    
-    // Setup event listeners
+
     setupEventListeners();
 });
 document.addEventListener('DOMContentLoaded', function() {
@@ -185,7 +187,7 @@ function showDashboardBasedOnRole(role) {
     document.querySelectorAll('.dashboard').forEach(dash => {
         dash.classList.add('hidden');
     });
-    
+
     // Show the appropriate dashboard
     switch(role) {
         case 'student':
@@ -206,9 +208,27 @@ function showDashboardBasedOnRole(role) {
             loadAllUsers();
             break;
         default:
-            // Handle unexpected roles or show error
             console.error('Unknown user role:', role);
             authModal.style.display = 'flex';
+    }
+
+    // Update navigation visibility based on role
+    updateNavForRole(role);
+}
+
+function updateNavForRole(role) {
+    const isStudent = role === 'student';
+
+    document.getElementById('ordersLink').style.display = isStudent ? 'block' : 'none';
+    document.getElementById('walletLink').style.display = isStudent ? 'block' : 'none';
+    document.getElementById('complaintsLink').style.display = isStudent ? 'block' : 'none';
+
+    // For staff/admin, show all links but disable some if needed
+    if (!isStudent) {
+        document.querySelectorAll('#navLinks a').forEach(link => {
+            link.style.pointerEvents = 'auto';
+            link.style.opacity = '1';
+        });
     }
 }
 
@@ -434,6 +454,7 @@ async function handleSignup(e) {
         localStorage.setItem('userData', JSON.stringify(response.user));
         
         currentUser = response.user;
+
         authModal.style.display = 'none';
         showDashboard('student');
         updateUIForUser();
@@ -456,7 +477,7 @@ function logout() {
 // Dashboard Functions
 function showDashboard(userType) {
     // Hide all dashboards
-    studentDashboard.classList.add('hidden');
+    //studentDashboard.classList.add('hidden');
     dhStaffDashboard.classList.add('hidden');
     accountsDashboard.classList.add('hidden');
     adminDashboard.classList.add('hidden');
@@ -545,11 +566,14 @@ async function handleAddUser(e) {
 
 function updateUIForUser() {
     if (currentUser) {
-        studentName.textContent = currentUser.name;
+        console.log(currentUser)
+        studentName.textContent = currentUser.full_name;
         walletBalance.textContent = `$${currentUser.walletBalance?.toFixed(2) || '0.00'}`;
         walletCurrentBalance.textContent = `$${currentUser.walletBalance?.toFixed(2) || '0.00'}`;
         
-        const isStudent = currentUser.role === 'student';
+        let isStudent = currentUser.role === 'student';
+        console.log(isStudent)
+
         document.getElementById('ordersLink').style.display = isStudent ? 'block' : 'none';
         document.getElementById('walletLink').style.display = isStudent ? 'block' : 'none';
         document.getElementById('complaintsLink').style.display = isStudent ? 'block' : 'none';
@@ -571,8 +595,9 @@ async function loadMenuItems() {
     
     try {
         const response = await api.menu.getMenu();
+        //console.log(response)
         menuItems = Object.values(response.data).flat(); // Convert category-based object to array
-        
+        console.log(menuItems)
         renderMenuItems();
     } catch (error) {
         console.error('Failed to load menu items:', error);
@@ -587,11 +612,11 @@ function renderMenuItems() {
         const itemElement = document.createElement('div');
         itemElement.className = `menu-item ${item.is_available ? '' : 'unavailable'}`;
         itemElement.innerHTML = `
-            <img src="${item.image_url || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="${item.name}" class="menu-item-img">
+            <img src="${item.image_url || ''}" alt="${item.name}" class="menu-item-img">
             <div class="menu-item-details">
                 <h3 class="menu-item-title">${item.name}</h3>
                 <p class="menu-item-desc">${item.description}</p>
-                <p class="menu-item-price">$${item.price.toFixed(2)}</p>
+                <p class="menu-item-price">$${item.price}</p>
                 <div class="menu-item-actions">
                     <div class="quantity-control">
                         <button class="quantity-btn minus" data-id="${item.id}">-</button>

@@ -50,65 +50,7 @@ switch ($method) {
         http_response_code(405);
         echo json_encode(['error' => 'Method not allowed']);
 }
-switch ($method) {
-    case 'GET':
-        $action = $_GET['action'] ?? '';
-        switch ($action) {
-            case 'get_users':
-                handleGetUsers($dbService);
-                break;
-            // ... other GET actions you might have
-            default:
-                http_response_code(400);
-                echo json_encode(['error' => 'Invalid action']);
-        }
-        break;
-    case 'POST':
-        $action = $_GET['action'] ?? '';
-        switch ($action) {
-            case 'register':
-                handleRegister($dbService);
-                break;
-            case 'login':
-                handleLogin($dbService);
-                break;
-            case 'add_user':
-                handleAddUser($dbService);
-                break;
-            case 'validate':
-                handleValidateToken();
-                break;
-            default:
-                http_response_code(400);
-                echo json_encode(['error' => 'Invalid action']);
-        }
-        break;
-    case 'PUT':
-        $action = $_GET['action'] ?? '';
-        switch ($action) {
-            case 'update_user':
-                handleUpdateUser($dbService);
-                break;
-            default:
-                http_response_code(400);
-                echo json_encode(['error' => 'Invalid action']);
-        }
-        break;
-    case 'DELETE':
-        $action = $_GET['action'] ?? '';
-        switch ($action) {
-            case 'delete_user':
-                handleDeleteUser($dbService);
-                break;
-            default:
-                http_response_code(400);
-                echo json_encode(['error' => 'Invalid action']);
-        }
-        break;
-    default:
-        http_response_code(405);
-        echo json_encode(['error' => 'Method not allowed']);
-}
+
 
 $dbService->close();
 
@@ -194,10 +136,13 @@ function handleLogin($dbService) {
     $token = JWTService::generateToken($user['id']);
 
     // Return success with token
+    $sql = "SELECT * FROM users WHERE id = ?";
+    $account= $dbService->query($sql, [$user['id']]);
+
     echo json_encode([
         'message' => 'Login successful',
         'token' => $token,
-        'user' => $user,
+        'user' => $account[0],
         'expires_in' => JWT_EXPIRE
     ]);
 }
