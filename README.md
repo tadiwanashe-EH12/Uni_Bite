@@ -55,7 +55,7 @@ ________________________________________
 _______________________________________
 License: 
 
-This project is licensed under the MIT License.
+Developed this project as part of my second year coursework project. Feel free to use the architecture as a learning reference.
 
 ________________________________________
  Contributions: 
